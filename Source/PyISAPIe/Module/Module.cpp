@@ -55,14 +55,16 @@ PyISAPIe_Func(void) ModuleInitInterp(Interpreter *const Interp) {
     _Py_CheckInterval = DEFAULT_CHECK_INTERVAL;
 
     PyObject *Executable = PyString_FromString(ModuleFile);
+
     PySys_SetObject("executable", Executable);
+
     Py_DECREF(Executable);
 
     //Trace(TRP"Deleting __main__ module");
-    PyDict_DelItemString(Interp->InterpreterState->modules, "__main__");
-    PyErr_Clear(); // just in case it's done twice
+    //PyDict_DelItemString(Interp->InterpreterState->modules, "__main__");
+    //PyErr_Clear(); // just in case it's done twice
 
-    // docs say no exception raised if key isn't there
+    //docs say no exception raised if key isn't there
     if (!PyDict_GetItemString(PyEval_GetBuiltins(), INTERP_VAR)) {
         //Trace(TRP"Setting __builtins__." INTERP_VAR);
         PyDict_SetItemString(PyEval_GetBuiltins(), INTERP_VAR,
