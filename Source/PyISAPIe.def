@@ -1,0 +1,5 @@
+LIBRARY	     PyISAPIe
+
+EXPORTS
+    HttpExtensionProc @1
+    GetExtensionVersion @2
