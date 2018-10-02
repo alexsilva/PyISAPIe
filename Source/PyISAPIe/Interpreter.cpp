@@ -484,9 +484,6 @@ PyISAPIe_Func(bool) LoadHandler(Interpreter *const Interp) {
 //  ShutdownInterpreters()
 //
 PyISAPIe_Func(void) ShutdownInterpreters() {
-    // freeman
-    if (iniconfig) { delete iniconfig; }
-
     Trace(TRP"Acquiring locks");
     EnterCriticalSection(&CsReq);
     PyEval_AcquireLock();
@@ -524,6 +521,10 @@ PyISAPIe_Func(void) ShutdownInterpreters() {
     // Maybe continue to hold the locks, making other threads hang?
     PyEval_ReleaseLock();
     LeaveCriticalSection(&CsReq);
+
+    // free iniconfig
+    if (iniconfig) { delete iniconfig; }
+
     return;
 }
 
