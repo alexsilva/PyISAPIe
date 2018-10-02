@@ -41,15 +41,23 @@ static unsigned int Initialized = 0;
 
 extern CRITICAL_SECTION CsReq;
 
-INIReader *iniconfig;
+INIReader *iniconfig = nullptr;
+
+const char* get_python_path(const char *path) {
+    return iniconfig->Get("python", "path", path).c_str();
+}
 
 const char* load_config(const char *path) {
-    iniconfig = new INIReader(std::string(path) + "/PyISAPI.ini");
-    if (!iniconfig && iniconfig->ParseError() < 0) {
-        Trace(TRP"Can't load 'PyISAPI.ini'");
-        return nullptr;
+    if (!iniconfig) {
+        iniconfig = new INIReader(std::string(path) + "/PyISAPI.ini");
+        if (iniconfig->ParseError() < 0) {
+            Trace(TRP"Can't load 'PyISAPI.ini'");
+            return path;
+        } else {
+            return get_python_path(path);
+        }
     } else {
-        return iniconfig->Get("python", "path", path).c_str();
+        return get_python_path(path);
     }
 }
 
@@ -62,11 +70,29 @@ const char* load_config(const char *path) {
 //    moved to GetExtensionVersion().
 //
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
-    iniconfig = nullptr;
     SAFE_BEGIN
     switch (Reason) {
         case DLL_PROCESS_ATTACH: {
+            // dll path
+            GetModuleFileName(hInst, ModuleFile, 2047);
+
+            // This var doesn't quite work as a search path generator
+            // for Python if the leading '\\?\' remains.
+            if (strstr(ModuleFile, "\\\\?\\") == ModuleFile)
+                strcpy_s(ModuleFile, &ModuleFile[4]);
+
+            // Get the path and remove the trailing slash
+            strncpy_s(ModulePath, ModuleFile, 2047);
+
+            char *modptr = strrchr(ModulePath, '\\');
+            if (modptr) *modptr = '\0';
+
+            // .ini configuration
+            const char *python_path = load_config(ModulePath);
+
             Trace(TRP"Attached 0x%08X (%i)", hInst, Initialized);
+
+            Trace(TRP"Python home path <%s>", python_path);
 
             if (Initialized++) {
                 Trace(TRP"Warning: PyISAPIe already initialized!");
@@ -93,30 +119,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
             // sys.executable still came out to w3wp.exe even when the
             // program name was set to the DLL.
             //
-
-            GetModuleFileName(hInst, ModuleFile, 2047);
-
-            // This var doesn't quite work as a search path generator
-            // for Python if the leading '\\?\' remains.
-            if (strstr(ModuleFile, "\\\\?\\") == ModuleFile)
-                strcpy_s(ModuleFile, &ModuleFile[4]);
-
-            // Get the path and remove the trailing slash
-            strncpy_s(ModulePath, ModuleFile, 2047);
-
-            char *Slash = strrchr(ModulePath, '\\');
-            if (Slash) *Slash = '\0';
-
             if (Py_IsInitialized()) {
                 Trace(TRP"Warning: Python already initialized!");
                 // really don't want this, but don't fail from it.
                 ModuleInitSystem();
                 return TRUE;
             }
-
-            const char *python_path = load_config(ModulePath);
-
-            Trace(TRP"Python home path <%s>", python_path);
 
             // set the current directory to the DLLs
             SetCurrentDirectory(ModulePath);

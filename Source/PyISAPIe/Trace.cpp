@@ -7,7 +7,10 @@
 #include "Trace.h"
 
 #ifdef TRACE_LOG
-#define TRACE_PATH(x,y) #x""#y
+
+#include <INIReader.h>
+
+extern  INIReader *iniconfig;
 
 #include <time.h>
 
@@ -39,8 +42,15 @@ extern "C" void Trace(const char *const Format, ...) {
     if (!fp) {
         int MyCount = ++Count;
 
-        snprintf(FormatE, 8191, R"(E:\www\html\PyISAPIe-1.1.0-rc1\Release\trace-%02i-%04d-%04d.txt)",
-                 MyCount, GetCurrentProcessId(), GetCurrentThreadId());
+        std::string path;
+        if (iniconfig) {
+            path = iniconfig->Get("trace", "path", "trace");
+        } else {
+            path.append("trace");
+        }
+        path.append("-%02i-%04d-%04d.log");
+
+        snprintf(FormatE, 8191, path.c_str(), MyCount, GetCurrentProcessId(), GetCurrentThreadId());
 
         fp = fopen(FormatE, "a+t");
         TlsSetValue(TlsIndex_Fp, (LPVOID) fp);
