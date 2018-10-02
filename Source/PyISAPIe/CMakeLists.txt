@@ -12,7 +12,12 @@ link_directories(${PYTHON_DIR}/libs)
 
 include_directories("Module")
 
+include_directories("../inih/cpp")
+include_directories("../inih")
+
 set(SOURCE_FILES
+        ../inih/cpp/INIReader.cpp
+        ../inih/ini.c
         Main.cpp
         ISAPI.cpp
         Header.cpp

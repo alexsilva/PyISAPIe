@@ -5,6 +5,7 @@
 // Interpreter & state management functions.
 //
 
+#include <INIReader.h>
 #include "Interpreter.h"
 #include "Module/Module.h"
 #include "Module/Env.h"
@@ -14,6 +15,8 @@
 // Used to determine if there is a thread state associated
 // with a thread.
 extern DWORD TlsIndex_Ts;
+extern  INIReader *iniconfig;
+
 const static LPVOID THREAD_HAS_STATE = (LPVOID) 0xFFFFFFFF;
 
 // Declared in ISAPI.cpp
@@ -481,6 +484,8 @@ PyISAPIe_Func(bool) LoadHandler(Interpreter *const Interp) {
 //  ShutdownInterpreters()
 //
 PyISAPIe_Func(void) ShutdownInterpreters() {
+    // freeman
+    if (iniconfig) { delete iniconfig; }
 
     Trace(TRP"Acquiring locks");
     EnterCriticalSection(&CsReq);

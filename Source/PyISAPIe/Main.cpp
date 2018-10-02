@@ -7,6 +7,7 @@
 #include "PyISAPIe.h"
 #include "Module/Module.h"
 #include "Interpreter.h"
+#include "INIReader.h"
 
 #ifdef PyISAPIe_WithPythonCore
 
@@ -40,6 +41,19 @@ static unsigned int Initialized = 0;
 
 extern CRITICAL_SECTION CsReq;
 
+INIReader *iniconfig;
+
+const char* load_config(const char *path) {
+    iniconfig = new INIReader(std::string(path) + "/PyISAPI.ini");
+    if (!iniconfig && iniconfig->ParseError() < 0) {
+        Trace(TRP"Can't load 'PyISAPI.ini'");
+        return nullptr;
+    } else {
+        return iniconfig->Get("python", "path", path).c_str();
+    }
+}
+
+
 /////////////////////////////////////////////////////////////////////
 //  DLLMain()
 //
@@ -48,6 +62,7 @@ extern CRITICAL_SECTION CsReq;
 //    moved to GetExtensionVersion().
 //
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
+    iniconfig = nullptr;
     SAFE_BEGIN
     switch (Reason) {
         case DLL_PROCESS_ATTACH: {
@@ -99,6 +114,10 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
                 return TRUE;
             }
 
+            const char *python_path = load_config(ModulePath);
+
+            Trace(TRP"Python home path <%s>", python_path);
+
             // set the current directory to the DLLs
             SetCurrentDirectory(ModulePath);
 
@@ -118,7 +137,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
             Py_SetProgramName(ModuleFile);
 
             // python files
-            Py_SetPythonHome(ModuleFile);
+            Py_SetPythonHome((char*) python_path);
 
             // This is a hack. It fixes the problem if site-packages not
             // being included in sys.path because prefix and exec_prefix
