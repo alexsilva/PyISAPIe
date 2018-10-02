@@ -151,12 +151,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD Reason, LPVOID) {
             // being included in sys.path because prefix and exec_prefix
             // aren't properly calculated ONLY when the DLL is in the
             // Python home directory. I couldn't figure out why.
-            if (!strlen(Py_GetPrefix())) {
-                strncpy(Py_GetPrefix(), ModulePath, MAX_PATH);
-            }
-            if (!strlen(Py_GetExecPrefix())) {
-                strncpy(Py_GetExecPrefix(), ModulePath, MAX_PATH);
-            }
+//            if (!strlen(Py_GetPrefix())) {
+//                strncpy(Py_GetPrefix(), ModulePath, MAX_PATH);
+//            }
+//            if (!strlen(Py_GetExecPrefix())) {
+//                strncpy(Py_GetExecPrefix(), ModulePath, MAX_PATH);
+//            }
 
             ModuleInitSystem();
 
