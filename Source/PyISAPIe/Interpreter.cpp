@@ -112,9 +112,8 @@ PyISAPIe_Func(Interpreter *) AcquireInterpreter(register Context &Ctx) {
 
     // acquired at this point
     //
-
     if (!Interp->Initialized) {
-        if (Interp->Initialized = InitializeInterpreter(Interp))
+        if ((Interp->Initialized = InitializeInterpreter(Interp)))
             if ((Interp == MainInterpreter) && InterpreterMap) {
                 // Reload with properly mapped interpreter
                 ReleaseInterpreter();
